@@ -1,0 +1,33 @@
+\documentclass[twoside]{article}
+\usepackage{amsmath,amssymb,amsthm,graphicx}
+\usepackage{epsfig}
+\usepackage[authoryear]{natbib}
+
+\usepackage{geometry}
+\usepackage{setspace}
+
+\geometry{twoside,
+          letterpaper, % i.e, paperwidth=210mm and paperheight=297mm,
+          top=25mm,
+          bottom=45mm,
+          left=25mm,
+          right=25mm,
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5cm}
+% Local Macros Put your favorite macros here that don't appear in
+% stat-macros.tex.  We can eventually incorporate them into
+% stat-macros.tex if they're of general use.
+
+\begin{document}
+
+\textbf{Reflection - Dirichlet reflection - Frigyik et al.}\\
+\textbf{Nicholas Hoernle \hfill \today}
+
+\begin{enumerate}
+  \item The $GEM$ distribution with concentration parameter $\alpha$, is closely related to the Dirichlet stick-breaking process. For a $K$ dimensional Dirichlet distribution, with parameters $a_{1:K}$, then a draw ($\rho$) from the Dirichlet distribution also can be written as a stick breaking process with $K-1$ breaks (and $K$ pieces):\\ $\rho_1 \sim Beta(\alpha_1, \sum\limits_{k=1}^K(a_k-a_1)), \frac{\rho_2}{1-\rho_1} \sim Beta(\alpha_2, \sum\limits_{k=2}^K(a_k-a_2)), \hdots, \rho_K = 1-\sum\limits_{k=1}^{K-1}\rho_k$. If we did not place a limit on $K$ and rather let $K \rightarrow \infty$, and if all $a_k = \alpha \forall K$ then we have described the $GEM$ distribution. So the $GEM$ distribution is like an infinite dimensional Dirichlet distribution.
+  \item Two elements drawn from the $GEM$ $\rho_i$ and $\rho_j$ for $i < j$ are not independent. Consider the stick breaking convention for the $GEM(\alpha)$ distribution where $\rho_k = \left[ \prod\limits_{j=1}^{k-1}(1-V_j) \right] V_k = \left\{ \left[ \prod\limits_{j=1}^{k-2}(1-V_j) \right] - \rho_{k-1} \right\} V_k$ (where $V_k$ is the proportion that is broken off at each step). Here we can see that $\rho_k$ depends on the value of $\rho_{k-1}$ (and previous values of $\rho_i$) and thus for two samples $\rho_i$ and $\rho_j$ for $i < j$, $\rho_j$ is dependent on $\rho_i$ ($P(\rho_{j} \mid \rho_{i}) \neq P(\rho_{j})$).
+  \item As $N \rightarrow \infty$, the number of unique values $\{ z_n \}$ also tends to $\infty$. This is exactly the paradigm that we desire as we'd like the number of assignments to grow appropriately with more observations of data (e.g. as the number of documents in a corpus tends to $\infty$, we might need new and unseen topics to help describe the data).
+\end{enumerate}
+\end{document}

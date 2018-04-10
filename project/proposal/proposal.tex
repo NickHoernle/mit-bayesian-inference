@@ -1,0 +1,52 @@
+\documentclass[twoside]{article}
+\usepackage{amsmath,amssymb,amsthm,graphicx}
+\usepackage{epsfig}
+\usepackage[authoryear]{natbib}
+
+\usepackage{geometry}
+\usepackage{setspace}
+
+\geometry{twoside,
+          letterpaper, % i.e, paperwidth=210mm and paperheight=297mm,
+          top=25mm,
+          bottom=40mm,
+          left=25mm,
+          right=25mm,
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5cm plus4mm minus3mm}
+% Local Macros Put your favorite macros here that don't appear in
+% stat-macros.tex.  We can eventually incorporate them into
+% stat-macros.tex if they're of general use.
+\title{Bayesian Inference for Switching State Space Models}
+\author{Nicholas Hoernle}
+
+\begin{document}
+
+\maketitle
+\section{Abstract}
+Switching linear dynamical systems (SLDS) are a class of models for time-series data where the parameters controlling a linear dynamical system switch according to a discrete latent process. SLDSs (also termed switching state space models (SSSMs)) combine hidden Markov and state space models to capture \textit{regime} switching in a non-linear time series. The intuition is that a dynamical system evolves over time but may undergo a regime change that informs an intrinsic shift in the system's characteristics. Allowing for discrete points in time where the dynamics change, enhances the power of simple linear dynamical models to capture more complicated dynamics. I propose that the decomposition of the complicated time series into periods of linear dynamics also helps to increase interpretability into the complex system that produced the time series. Following Fox et al.~\cite{fox2011bayesian}, this project implements a version of the \textit{sticky} hierarchical Dirichlet process (HDP) for Hidden Markov Models (HMM)~\cite{fox2008hdp} that is tailored for SLDSs. The model is an extension of the HDP-HMM that Teh et al.~\cite{teh2005sharing} propose in that it encourages regimes to remain active for longer periods of time (and reduces the tendency of the HDP-HMM to rapidly switch between a larger number of states). Tailoring the HDP-HMM for SLDS is a challenge due to the time dependent observations in each regime. Fox et al.~\cite{fox2011bayesian} introduce the sticky HDP-HMM for SLDS in general and for vector autoregressive processes (AR) as a useful subset of the general SLDS. I follow Fox's model specification and implement a blocked Gibbs sampler to perform posterior inference in the HDP-AR-HMM and HDP-SLDS models. Classical approaches~\cite{kim1999state,ghahramani2000variational} to performing inference in SLDS assume the known number of models (also termed modes and regimes). These bodies of work appear to be disjoint and thus I will conduct similar experiments to those by both Fox et al.~\cite{fox2011bayesian} and Ghahramani and Hinton~\cite{ghahramani2000variational} to compare the two approaches in terms of their success in performing inference over the latent switching variable and over the regime specific parameters.
+
+\section{Proposal details}
+\subsection{Project timeline and work milestones:}
+\begin{enumerate}
+  \item Study hierarchical Dirichlet processes~\cite{teh2005sharing} and sticky hierarchical Dirichlet processes~\cite{fox2008hdp}. Investigate the use of Stan for infernece when the \textit{weak limit} approximation is made (see Section \ref{sec:risks}). \textbf{Due:}~\textit{Monday~9~April}.
+  \item Study and \textbf{implement} HDP-SLDS and HDP-AR-HMM models\cite{fox2011bayesian}. \textbf{Due:}~\textit{Monday~23~April}.
+  \item Design and implement an experiment to compare the inference of the models in (2) vs previous literature for switching state space models (namely the work by Kim \cite{kim1999state}). This will involve simulating data from a number of different generative models (e.g. such as the experiments that Fox~\cite{fox2011bayesian} conducted). \textbf{Due:}~\textit{Monday~30~April}.
+  \item Investigate the interpretability of the model for uncovering latent structure from complex time series data. I can use standard data from the field (e.g. bee dancing data) or I can use data from an educational dataset that I have been working with. I am interested in segmenting the timeseries response from an educational simulation into periods that teachers are able to use to create salient reviews of students' work. \textbf{Due:}~\textit{Friday~4~May}.
+\end{enumerate}
+
+\subsection{Project deliverables}
+\begin{enumerate}
+  \item Implementation of sticky hierarchical Dirichlet processes tailored for switching linear dynamical systems and vector autoregressive regimes~\cite{fox2011bayesian}.
+  \item Experimental design to compare the above implementation and the gaussian merging approach for pseudo-maximum likelihood parameter and state estimation that is implemented in \textit{statsmodels}~\cite{kim1999state}. This experiment will primarily consist of data that is generated under a number of different settings and I will evaluate how effectively the algorithms are able to recover the regime switches. Ghahramani plots a histogram of the percent agreement between the model and the true data. Fox investigates the Hamming distance between the inferred and the true label assignments.
+\end{enumerate}
+
+\subsection{Project risks}\label{sec:risks}
+I am implementing inference algorithms for two unknown models. This will involve programming the Gibbs samplers for both the HDP-SLDS and the HDP-AR-HMM. I will work with synthetic test data such that I am able to effectively evaluate the performance of my implementations (and to debug the samplers). Fox et al. use the \textit{weak limit} of the Dirichlet process by approximating the infinitely many modes with a finite mode limit (i.e. an upper bound of $L$ modes in the model). Making this assumption will allow me to prototype the sampling inference scheme in Stan/Edward/PyMC3 for quicker inference implementation. I am still investigating this possibility but I believe it might present a good risk mitigation possibility should I need it.
+
+\bibliographystyle{abbrv}
+\bibliography{project}
+
+\end{document}

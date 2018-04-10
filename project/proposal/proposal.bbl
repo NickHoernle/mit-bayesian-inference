@@ -1,0 +1,32 @@
+\begin{thebibliography}{1}
+
+\bibitem{fox2011bayesian}
+E.~Fox, E.~B. Sudderth, M.~I. Jordan, and A.~S. Willsky.
+\newblock Bayesian nonparametric inference of switching dynamic linear models.
+\newblock {\em IEEE Transactions on Signal Processing}, 59(4):1569--1585, 2011.
+
+\bibitem{fox2008hdp}
+E.~B. Fox, E.~B. Sudderth, M.~I. Jordan, and A.~S. Willsky.
+\newblock An hdp-hmm for systems with state persistence.
+\newblock In {\em Proceedings of the 25th international conference on Machine
+  learning}, pages 312--319. ACM, 2008.
+
+\bibitem{ghahramani2000variational}
+Z.~Ghahramani and G.~E. Hinton.
+\newblock Variational learning for switching state-space models.
+\newblock {\em Neural computation}, 12(4):831--864, 2000.
+
+\bibitem{kim1999state}
+C.-J. Kim, C.~R. Nelson, et~al.
+\newblock State-space models with regime switching: classical and
+  gibbs-sampling approaches with applications.
+\newblock {\em MIT Press Books}, 1, 1999.
+
+\bibitem{teh2005sharing}
+Y.~W. Teh, M.~I. Jordan, M.~J. Beal, and D.~M. Blei.
+\newblock Sharing clusters among related groups: Hierarchical dirichlet
+  processes.
+\newblock In {\em Advances in neural information processing systems}, pages
+  1385--1392, 2005.
+
+\end{thebibliography}

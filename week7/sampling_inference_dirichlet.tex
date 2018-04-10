@@ -1,0 +1,36 @@
+\documentclass[twoside]{article}
+\usepackage{amsmath,amssymb,amsthm,graphicx}
+\usepackage{epsfig}
+\usepackage[authoryear]{natbib}
+\bibliographystyle{unsrtnat}
+\usepackage{geometry}
+\usepackage{setspace}
+
+\geometry{twoside,
+          letterpaper, % i.e, paperwidth=210mm and paperheight=297mm,
+          top=25mm,
+          bottom=45mm,
+          left=25mm,
+          right=25mm,
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5cm}
+% Local Macros Put your favorite macros here that don't appear in
+% stat-macros.tex.  We can eventually incorporate them into
+% stat-macros.tex if they're of general use.
+
+\begin{document}
+
+\textbf{Reflection - MCMC Dirichlet Inference - Neal}\\
+\textbf{Nicholas Hoernle \hfill \today}
+
+\begin{enumerate}
+  \item The Chinese Restaurant Process (CRP) describes the marginal distribution for the categorical assignments that are made from the Dirichlet process (DP). The CRP presents an intuitive framework that helps to show that not only are the draws from a Dirichlet Process discrete, but also that they exhibit the clustering property where there is a positive reinforcement effect of customers joining already popular tables. It essentially describes a method for scaling the number of clusters as more data are observed. The benefit of this approach is that it provides an efficient sampling framework as the cluster proportions are marginalized out. Due to the exchangability of the data, we treat any datapoint as the `latest' observation which allows us to design Gibbs samplers for posterior inference. We have also implicitly ignored the `$\infty$ of components' as we only consider new components when they are motivated by the data (with the hard limit of not having more clusters than datapoints).
+  \item The DP is the theoretical model (whereas the CRP describes a method for constructing/generating data from that model). The DP describes \textbf{both} the cluster assignment and the proportions of expected mass associated with each cluster. A benefit of this representation is that we are more flexible to choose different constructions for inference (e.g. stick breaking) that might be more suitable than the CRP to certain inference tasks.
+  \item \textit{[Bastug, E., Bennis, M. and Debbah, M., 2014. Living on the edge: The role of proactive caching in 5G wireless networks. IEEE Communications Magazine, 52(8), pp.82-89.]} model content dissemination on a network as a CRP to assist proactive caching on local small area network cells.
+\end{enumerate}
+
+% \bibliography{references}
+
+\end{document}

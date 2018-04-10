@@ -1,0 +1,37 @@
+\documentclass[twoside]{article}
+\usepackage{amsmath,amssymb,amsthm,graphicx}
+\usepackage{epsfig}
+\usepackage[authoryear]{natbib}
+
+\usepackage{geometry}
+\usepackage{setspace}
+
+\geometry{twoside,
+          letterpaper, % i.e, paperwidth=210mm and paperheight=297mm,
+          top=25mm,
+          bottom=40mm,
+          left=25mm,
+          right=25mm,
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5cm plus4mm minus3mm}
+
+\begin{document}
+
+\textbf{Reflection - Project Progress Report}\\
+\textbf{Nicholas Hoernle \hfill \today}
+
+\textbf{Work done to-date}
+I have explored the Dirichlet process~(DP), hierarchical Dirichlet process~(HDP) and hierarchical Dirichlet process for hidden Markov models~(HDP-HMM) literature. I have expolored the DP case for a simple generative model of a mixture of 4 Gaussians and I have written a basic Stan model for inference over the parameters (with a stick breaking prior). The implementation marginalizes over the cluster assignments ($z_i$) for compalibility with the NUTS sampler and uses a posterior predictive step to make the cluster assignments to data (this makes it exceedingly slow but the implementation was useful for my understanding). I used the truncated DP here for inference.
+
+I have written the deterministic code needed for the forward and backward state space model filters.
+
+The HDP can be applied to a HMM with unknown state space cardinality. If there are countably infinitely many HMM state values, for each state, there is a countably infinite transition density over the next HMM state. Note that the transition densities are state specific and thus the hierarchical extension to the DP is necessary. 
+
+\textbf{Plan for rest of project}
+\begin{enumerate}
+  \item
+\end{enumerate}
+
+\end{document}

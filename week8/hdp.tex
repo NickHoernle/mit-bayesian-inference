@@ -1,0 +1,37 @@
+\documentclass[twoside]{article}
+\usepackage{amsmath,amssymb,amsthm,graphicx}
+\usepackage{epsfig}
+\usepackage[authoryear]{natbib}
+\bibliographystyle{unsrtnat}
+\usepackage{geometry}
+\usepackage{setspace}
+
+\geometry{twoside,
+          letterpaper, % i.e, paperwidth=210mm and paperheight=297mm,
+          top=25mm,
+          bottom=45mm,
+          left=25mm,
+          right=25mm,
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5cm}
+% Local Macros Put your favorite macros here that don't appear in
+% stat-macros.tex.  We can eventually incorporate them into
+% stat-macros.tex if they're of general use.
+
+\begin{document}
+
+\textbf{Reflection - HDP - Teh}\\
+\textbf{Nicholas Hoernle \hfill \today}
+
+\begin{enumerate}
+  \item Teh targets the problem of sharing of clusters among groups. Teh builds on the DP theory to include setting where data has groups and each group has clusters. Critically, the groups are related by the clusters that they share. The clear example is from topic modeling where documents in a corporus might contain documents with certain topics. A different corporus might contain other documents that has some overlap of topics with the original corpus and so on. If the base measure $G_0$ is continuouse, then the clusters between groups will share no mass. If $G_0$ is drawn from a $DP$, then this allows for a flexible specification of the model, but it also encourages the clustering property that we desire.
+  \item The Hierarchical Dirichlet Process (HDP) generalizes Latent Dirichlet Allocation (LDA) by not requiring the pre-specification of the number of topics. The word-topic and topic-document relationship is the same in both models but the HDP allows for infinitely many topics.
+  \item
+\end{enumerate}
+
+
+% \bibliography{references}
+
+\end{document}

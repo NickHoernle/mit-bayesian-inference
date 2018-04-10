@@ -1,0 +1,34 @@
+\documentclass[twoside]{article}
+\usepackage{amsmath,amssymb,amsthm,graphicx}
+\usepackage{epsfig}
+\usepackage[authoryear]{natbib}
+
+\usepackage{geometry}
+\usepackage{setspace}
+
+\geometry{twoside,
+          letterpaper, % i.e, paperwidth=210mm and paperheight=297mm,
+          top=25mm,
+          bottom=40mm,
+          left=25mm,
+          right=25mm,
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5cm plus4mm minus3mm}
+% Local Macros Put your favorite macros here that don't appear in
+% stat-macros.tex.  We can eventually incorporate them into
+% stat-macros.tex if they're of general use.
+\title{Bayesian Inference for Switching State Space Models}
+\author{Nicholas Hoernle}
+
+\begin{document}
+
+\maketitle
+\section{Abstract}
+Switching state-space models (SSSM) are a class of models for time-series data where the parameters controlling a linear dynamical system switch according to a discrete latent process. SSSMs combine hidden Markov and state space models to capture \textit{regime} switching in a non-linear time series. The intuition is that a dynamical system evolves over time but may undergo a regime change that informs an intrinsic shift in the system's characteristics. Allowing for discrete points in time where the dynamics change, enhances the power of simple linear models to capture more complicated dynamics. I propose that the decomposition of the complicated time series into periods of uniform dynamics also helps to increase interpretability into the complex system that produced the time series. I present an application of Bayesian Nonparametrics to the task of learning the model parameters and the points in time where switches occurred between regimes. I compare the nonparametric implementation to previous work (Gaussian merging approximate-MLE and Variational Bayes\footnote{the Gaussian merging algorithm~\cite{kim1999state} is implemented in Statsmodels and is therefore readily available for comparison. I would need to implement the Variational Bayes algorithm~\cite{ghahramani2000variational} and therefore this would be time permitting (with my focus rather being on understanding and implementing the nonparametric approach.)}) in terms of its ability to recover unknown switches and model parameters from observed data.
+
+\bibliographystyle{abbrv}
+\bibliography{project}
+
+\end{document}

@@ -1,0 +1,14 @@
+\begin{thebibliography}{1}
+
+\bibitem{ghahramani2000variational}
+Z.~Ghahramani and G.~E. Hinton.
+\newblock Variational learning for switching state-space models.
+\newblock {\em Neural computation}, 12(4):831--864, 2000.
+
+\bibitem{kim1999state}
+C.-J. Kim, C.~R. Nelson, et~al.
+\newblock State-space models with regime switching: classical and
+  gibbs-sampling approaches with applications.
+\newblock {\em MIT Press Books}, 1, 1999.
+
+\end{thebibliography}

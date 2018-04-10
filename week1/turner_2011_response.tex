@@ -1,0 +1,47 @@
+\documentclass[twoside]{article}
+\usepackage{amsmath,amssymb,amsthm,graphicx}
+\usepackage{epsfig}
+\usepackage[authoryear]{natbib}
+
+\usepackage{geometry}
+\usepackage{setspace}
+
+\geometry{twoside,
+          letterpaper, % i.e, paperwidth=210mm and paperheight=297mm,
+          top=25mm,
+          bottom=40mm,
+          left=25mm,
+          right=25mm,
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5cm plus4mm minus3mm}
+% Local Macros Put your favorite macros here that don't appear in
+% stat-macros.tex.  We can eventually incorporate them into
+% stat-macros.tex if they're of general use.
+
+\begin{document}
+
+\textbf{Reflection - Problems with Variational EM for Time Series - Turner 2011}\\
+\textbf{Nicholas Hoernle \hfill \today}\\
+
+% Turner presents a discussion regarding the failure of variational methods to correctly identify the uncertainty in the approximation of a posterior distribution. From one perspective, this is catastrophic as the entire goal of using the Bayesian methods is to not only have access to the point estimates but also to understand the nature of the entire joint distribution of the parameters and the data. However, many of the VI methods that have been presented make simplifying (factoring) assumptions and thus the incorrect uncertainty approximations can only be expected. For the example with the highly correlated bi-variate Gaussian, the
+
+% \begin{enumerate}
+%   \item Is it always bad to use VB to approximate multimodal posteriors? Why or why not?
+%   \item Is it always better to have a larger set of "Nice" distributions when using VB? Why or why not?
+%   \item What relationship do the authors find between the tightness of the log likelihood/free energy and bias, and what are the limitations of this finding?
+% \end{enumerate}
+
+(1) It is not necessarily \textit{always bad} to use VB to approximate multimodal posteriors, one just has to be very careful to identify the problems that may arise when this is the case. The purpose/use of the model would have to be discussed to make an \textit{always bad} statement but Turner shows that the VI approximation will tend to only approximate one of the modes of the posterior when the modes are significantly separated. This can lead to very misleading results, with the VI approximation having a smaller entropy than the true posterior and thus not only is the distribution badly approximated but the approximating model is also too optimistic about the uncertainty of the posterior. When the separation between the modes is less pronounced (i.e. there is a `significant bridge' between the modes) then the variational approximation may still be useful.
+
+(2) I believe Turner makes the case that it is not always better to have a larger set of `Nice' distributions. This certainly can be the case, but he presents a convincing argument for restricting the factorising of the variational family to specific subsets (of the fully factored model) when certain correlation (time or chain dependency) properties are known about the posterior of the time series. He argues that structured approximations can yield a lower bias in the model than a more general approximation that achieves a tighter variational bound.
+
+(3) The interesting relationship between the tightness of free energy and the bias is that the tightest bounds on free energy do not necessarily give the best results in terms of approximating the uncertainty in the model. The findings stress that it is important to evaluate the dependence of the variational bounds on the model parameters (as the free energy is maximised over the approximating distribution $q$ and not over the actual log-likelihood of the parameters ($\log p(T \vert \theta)$)).
+
+
+% Because the optimisation alternates over the constrained distributions $q \in \mathcal{Q}$ and over the parameters $\theta$, we no longer maximise the likelihood but rather the free-energy. Turner shows how this is problematic due to the expectations (in the E-step being pinned to the approximate variational distributions). He discusses the differences between constraining the `family' of distributions under optimisation $\mathcal{Q}$ or rather defining the class $\mathcal{Q}$ as containing the distributions that factor over disjoint sets $\mathcal{Q}$.
+
+% It was not clear to me whether Turner appropriately addressed the problem of evaluating vEM on a `large' dataset. Given other techniques for comparison (namely MCMC) his final argument for not addressing more complicated time series models due to their intractability seemed weak.
+
+\end{document}

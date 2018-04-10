@@ -1,0 +1,35 @@
+\documentclass[twoside]{article}
+\usepackage{amsmath,amssymb,amsthm,graphicx}
+\usepackage{epsfig}
+\usepackage[authoryear]{natbib}
+
+\usepackage{geometry}
+\usepackage{setspace}
+
+\geometry{twoside,
+          letterpaper, % i.e, paperwidth=210mm and paperheight=297mm,
+          top=25mm,
+          bottom=45mm,
+          left=25mm,
+          right=25mm,
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5cm}
+% Local Macros Put your favorite macros here that don't appear in
+% stat-macros.tex.  We can eventually incorporate them into
+% stat-macros.tex if they're of general use.
+
+\begin{document}
+
+\textbf{Reflection - Reversible jump MCMC - Green}\\
+\textbf{Nicholas Hoernle \hfill \today}
+
+Given a set of parameters (${\theta_i}$ for $i = 1, 2, \hdots n$) that describe an unknown distribution, Gibbs sampling systematically visits subsets of these parameters and updates them based on the \textit{full conditionals}. The \textit{full conditionals} are the conditional distributions of a subset $T \subset \{ 1, 2, \hdots n \}$ of the parameters given all other paramters not in $T$. In other words, we use the conditional distributions $P(\theta_T \mid \theta_{-T})$ where $\theta_{-T}$ denotes all the parameters that are not in T. Note that the paper introduces the concept of `jumping' between subspaces of differing dimensionality, in this case, we are only concerned with one of those subspaces. An example of a full conditional is given in 6.1 where $\theta_i \mid \hdots \sim Beta(\alpha,\beta)$ where $\hdots$ refers to all other parameters associated with that dimension. A (not full) conditional is any other conditional distribution that is not a full conditional (an example can be seen in section 3 where the probability of parameters $\theta^{(1)}$ associated with subspace 1 are conditioned on that subspace being chosen ($P(\theta^{(1)} \mid k = 1)$).
+
+This technique is called `reversible jump' as the sampler needs to evaluate proposals that include parameters that might exist in a different subspace. The sampler must therefore allow `jumps' to the parameters associated with a different subspace (the jump includes a change in parameter dimension). The jumps must be `reversible' to maintain detailed balance between subspaces.
+
+% The posterior we are approximating is $p(k, \theta^{(k)} \ mid y)$
+We could not directly use Variational Bayes to solve the problem as it is formulated here. In theory, we could ask for a family of approximating functions $Q$ and select $q^* \in Q$ that minimizes the $KL$ divergence to the joint posterior $P(k, \theta^{(k)} \mid y)$. This is minimization objective would change with different $k$ and $\theta^{(k)}$ (due to changes in dimension of $\theta^{(k)}$) making this technique invalid.
+
+\end{document}
