@@ -1,0 +1,20 @@
+\begin{thebibliography}{1}
+
+\bibitem{fox2007developing}
+E.~Fox, E.~Sudderth, M.~Jordan, and A.~Willsky.
+\newblock Developing a tempered hdp-hmm for systems with state persistence.
+\newblock {\em MIT Laboratory for Information and Decision Systems, Tech.
+  Rep.}, 2007.
+
+\bibitem{fox2011bayesian}
+E.~Fox, E.~B. Sudderth, M.~I. Jordan, and A.~S. Willsky.
+\newblock Bayesian nonparametric inference of switching dynamic linear models.
+\newblock {\em IEEE Transactions on Signal Processing}, 59(4):1569--1585, 2011.
+
+\bibitem{fox2008hdp}
+E.~B. Fox, E.~B. Sudderth, M.~I. Jordan, and A.~S. Willsky.
+\newblock An hdp-hmm for systems with state persistence.
+\newblock In {\em Proceedings of the 25th international conference on Machine
+  learning}, pages 312--319. ACM, 2008.
+
+\end{thebibliography}
