@@ -17,4 +17,11 @@ E.~B. Fox, E.~B. Sudderth, M.~I. Jordan, and A.~S. Willsky.
 \newblock In {\em Proceedings of the 25th international conference on Machine
   learning}, pages 312--319. ACM, 2008.
 
+\bibitem{teh2005sharing}
+Y.~W. Teh, M.~I. Jordan, M.~J. Beal, and D.~M. Blei.
+\newblock Sharing clusters among related groups: Hierarchical dirichlet
+  processes.
+\newblock In {\em Advances in neural information processing systems}, pages
+  1385--1392, 2005.
+
 \end{thebibliography}

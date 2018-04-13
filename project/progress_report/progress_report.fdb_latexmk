@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex progress_report"] 1523478582 "progress_report.aux" "progress_report.bbl" "progress_report" 1523478601
+["bibtex progress_report"] 1523629153 "progress_report.aux" "progress_report.bbl" "progress_report" 1523629760
   "/usr/local/texlive/2016/texmf-dist/bibtex/bst/base/abbrv.bst" 1292289607 20329 b5fed53e10044d0f8112183785c759b1 ""
-  "progress_report.aux" 1523478601 381 a59b97c94d38d73c9d177b82339ee710 ""
+  "progress_report.aux" 1523629760 822 488bf8f2aeaf0630f75a6319d53586a1 ""
   "progress_report.bcf" 0 -1 0 ""
-  "references.bib" 1523477741 907 f208a3fa1fa673d4fdac9db3ef1f0100 ""
+  "references.bib" 1523628801 1208 e9a29aec4212d3fe0fb98a80e8dd29c0 ""
   (generated)
   "progress_report.bbl"
   "progress_report.blg"
-["pdflatex"] 1523478601 "progress_report.tex" "progress_report.pdf" "progress_report" 1523478601
+["pdflatex"] 1523629759 "progress_report.tex" "progress_report.pdf" "progress_report" 1523629760
   "/usr/local/texlive/2016/texmf-dist/fonts/map/fontname/texfonts.map" 1272929888 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/local/texlive/2016/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2016/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1246382020 916 f87d7c45f9c908e672703b83b72241a3 ""
@@ -49,6 +49,7 @@
   "/usr/local/texlive/2016/texmf-dist/tex/latex/amsmath/amstext.sty" 1456875012 2431 fe3078ec12fc30287f568596f8e0b948 ""
   "/usr/local/texlive/2016/texmf-dist/tex/latex/base/article.cls" 1459635588 19821 310da678527a7dfe2a02c88af38079b7 ""
   "/usr/local/texlive/2016/texmf-dist/tex/latex/base/size10.clo" 1459635588 8292 e897c12e1e886ce77fe26afc5d470886 ""
+  "/usr/local/texlive/2016/texmf-dist/tex/latex/float/float.sty" 1137110151 6749 16d2656a1984957e674b149555f1ea1d ""
   "/usr/local/texlive/2016/texmf-dist/tex/latex/geometry/geometry.sty" 1284422013 40502 e003406220954b0716679d7928aedd8a ""
   "/usr/local/texlive/2016/texmf-dist/tex/latex/graphics-cfg/graphics.cfg" 1459978653 3103 f32642b1cd56c010cdfb6545539b7f0b ""
   "/usr/local/texlive/2016/texmf-dist/tex/latex/graphics/epsfig.sty" 1428932888 3388 93cb6d9fa64f9566276657fd15254187 ""
@@ -67,10 +68,11 @@
   "/usr/local/texlive/2016/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1472994962 1888048 f2c5faed5981a516f406b2ccc20bff71 ""
   "/usr/local/texlive/2016/texmf-var/web2c/pdftex/pdflatex.fmt" 1472994982 3873396 e6d65ece74bf03063fe5dcd8cf6073e2 ""
   "/usr/local/texlive/2016/texmf.cnf" 1463979140 577 2938757e76f31531e65cc647e3507693 ""
-  "progress_report.aux" 1523478601 381 a59b97c94d38d73c9d177b82339ee710 ""
-  "progress_report.bbl" 1523478582 792 ca053b1e4c64077165b969904e54c0d3 "bibtex progress_report"
-  "progress_report.tex" 1523478599 2877 38a7a762d36d296429cbaf568a3efbb0 ""
+  "progress_report.aux" 1523629760 822 488bf8f2aeaf0630f75a6319d53586a1 ""
+  "progress_report.bbl" 1523629153 1052 62d61be324a78e0b14c8e11b0c6d7aa5 "bibtex progress_report"
+  "progress_report.tex" 1523629758 3797 777345a2b8028c62b4ff70e551dc108c ""
+  "sticky_hmm_outputs.png" 1523628291 92235 5b17c748df5a8630a58f471e62a31cf4 ""
   (generated)
   "progress_report.pdf"
-  "progress_report.aux"
   "progress_report.log"
+  "progress_report.aux"
