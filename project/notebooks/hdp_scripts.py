@@ -12,11 +12,9 @@ def backward_step(obs, likeihood_fn, pi, m_tplus1, theta, L):
         P(y1:T \mid z_{t-1}, \pi, \theta)
     '''
     messages = np.zeros((L,L), dtype=np.float128)
-    messages += np.exp(np.log(pi) +
-                       likeihood_fn([[theta[j][0] for j in range(L)] for k in range(L)],
-                                    [[theta[j][1] for j in range(L)] for k in range(L)]).logpdf(obs) +
-                       np.log(m_tplus1))
-    return np.sum(messages, axis=1)/np.sum(messages)
+    messages += (np.log(pi) + likeihood_fn([[theta[j][0] for j in range(L)] for k in range(L)],
+                                    [[theta[j][1] for j in range(L)] for k in range(L)]).logpdf(obs) + m_tplus1)
+    return sp.misc.logsumexp(messages, axis=1)
 
 def backward_step_slds(yt, ytmin1, likeihood_fn, pi, m_tplus1, theta, L):
     '''
@@ -24,8 +22,11 @@ def backward_step_slds(yt, ytmin1, likeihood_fn, pi, m_tplus1, theta, L):
         P(y1:T \mid z_{t-1}, \pi, \theta)
     '''
     messages = np.zeros((L,L), dtype=np.float128)
-    messages += (np.log(pi) + likeihood_fn([[ytmin1*theta[j]['A'] for j in range(L)] for k in range(L)],
-                                [[theta[j]['sigma'] for j in range(L)] for k in range(L)]).logpdf(yt) + m_tplus1) # backward messages
+
+    mu_k_j = [[ytmin1*theta[j]['A'] for j in range(L)] for k in range(L)]
+    sigma_k_j = [[theta[j]['sigma'] for j in range(L)] for k in range(L)]
+
+    messages += (np.log(pi) + likeihood_fn(mu_k_j, sigma_k_j).logpdf(yt) + m_tplus1) # backward messages
 
     return sp.misc.logsumexp(messages, axis=1)
 
@@ -96,22 +97,25 @@ def forward_step_slds(yt, ytmin1, likeihood_fn, pi_ztmin1, m_tplus1, theta, L):
     The backward message that is passed from zt to zt-1 given by the HMM:
         P(y1:T \mid z_{t-1}, \pi, \theta)
     '''
+    mus = [ytmin1*theta[j]['A'] for j in range(L)]
+    simgas = [theta[j]['sigma'] for j in range(L)]
 
     prob = np.exp(np.log(pi_ztmin1) +
-                  likeihood_fn([ytmin1 * theta[j]['A'] for j in range(L)],
-                               [theta[j]['sigma'] for j in range(L)]).logpdf(yt) +
+                  likeihood_fn(mus, simgas).logpdf(yt) +
                   m_tplus1)
-    return prob
+
+    return prob/np.sum(prob)
 
 def forward_step(obs, likeihood_fn, pi_ztmin1, m_tplus1, theta, L):
     '''
     The backward message that is passed from zt to zt-1 given by the HMM:
         P(y1:T \mid z_{t-1}, \pi, \theta)
     '''
-
+    mus = [theta[j][0] for j in range(L)]
+    sigmas = [theta[j][1] for j in range(L)]
     prob = np.exp(np.log(pi_ztmin1) +
-                  likeihood_fn([theta[j][0] for j in range(L)], [theta[j][1] for j in range(L)]).logpdf(obs) +
-                  np.log(m_tplus1))
+                  likeihood_fn(mus, sigmas).logpdf(obs) +
+                  m_tplus1)
     return prob
 
 def state_assignments_slds(Y, bkwd, params, **kwargs):
@@ -141,16 +145,13 @@ def state_assignments_slds(Y, bkwd, params, **kwargs):
         prob_fk = np.zeros(shape=L, dtype=np.float128)
 
         if t == 0:
-            # TODO: is there a better way of starting for Y[t-1]
             prob_fk += forward_step_slds(yt, yt, likelihood, pi[z_tmin1], bkwd[t], theta, L)
         else:
             # (a) compute the probability f_k(yt)
             prob_fk += forward_step_slds(yt, Y[t-1], likelihood, pi[z_tmin1], bkwd[t], theta, L)
 
         # (b) sample a new z_t
-        # normalize prob_fk
-        prob_fk_ = np.array(prob_fk/np.sum(prob_fk), dtype=np.float64)
-        z[t] = np.random.choice(options, p=prob_fk_)
+        z[t] = np.random.choice(options, p=prob_fk.astype(np.float64))
 
         # (c) increment n
         n[z_tmin1, z[t]] += 1
@@ -221,12 +222,22 @@ def slds_sufficient_statistics(Y, Y_bar, fwd_pass, params, **kwargs):
     for j in range(params['L']):
         # for each model
         indexes = np.where(fwd_pass['z'] == j)[0]
-        Y_k = Y[indexes]
-        Y_bar_k = Y_bar[indexes]
 
-        S_ybarybar.append( np.dot(Y_bar_k, Y_bar_k.T) + K )
-        S_yybar.append( np.dot(Y_k, Y_bar_k.T) + np.dot(M, K) )
-        S_yy.append( np.dot(Y_k, Y_k.T) + np.dot(np.dot(M, K), M.T) )
+        if len(indexes) <= 0:
+            y_b_k = K
+            yk_yb_k = np.dot(M, K)
+            y_k = np.dot(np.dot(M, K), M.T)
+        else:
+            Y_k = Y[indexes]
+            Y_bar_k = Y_bar[indexes]
+
+            y_b_k = np.dot(Y_bar_k, Y_bar_k.T) + K
+            yk_yb_k = np.dot(Y_k, Y_bar_k.T) + np.dot(M, K)
+            y_k = np.dot(Y_k, Y_k.T) + np.dot(np.dot(M, K), M.T)
+
+        S_ybarybar.append( y_b_k )
+        S_yybar.append( yk_yb_k )
+        S_yy.append( y_k )
 
     return (
         S_ybarybar,
@@ -239,6 +250,7 @@ def slds_sufficient_statistics(Y, Y_bar, fwd_pass, params, **kwargs):
 #=============================================================
 
 def step_3(state_assignments, params):
+
     L = params['L']
     alpha = params['alpha']
     kappa = params['kappa']
@@ -250,9 +262,7 @@ def step_3(state_assignments, params):
     J = [[[] for i in range(L)] for i in range(L)]
 
     for t, zt in enumerate(z):
-        if t == 0:
-            None
-        else:
+        if t > 0:
             J[z[t-1]][zt].append(t)
 
 
@@ -292,6 +302,7 @@ def update_beta(mbar, params):
     gamma = params['gamma']
     L = params['L']
 
+    # TODO: which axis are you supposed to sum over here
     mbar_dot = np.sum(mbar, axis=0)
     return np.random.dirichlet(gamma/L + mbar_dot)
 
@@ -325,29 +336,34 @@ def update_slds_theta(n, S_ybarybar, S_yybar, S_yy, theta, params, priors):
 
     S_0, n_0 = priors
 
-    # how many time to iterate these samples?
-    num_iter = 10
     L = params['L']
 
-    for i in range(num_iter):
-        for k in range(0,L):
+    for k in range(0,L):
 
-            S_ybarybar_k, S_yybar_k, S_yy_k = S_ybarybar[k], S_yybar[k], S_yy[k]
+        S_ybarybar_k, S_yybar_k, S_yy_k = S_ybarybar[k], S_yybar[k], S_yy[k]
 
-            # sigma_k
-            sig = stats.invwishart(scale=S_yybar_k + S_0, df=np.sum(n[k]) + n_0).rvs()
+        S_ybarybar_k_inv = np.linalg.pinv(S_ybarybar_k)
 
-            if type(sig) != np.ndarray:
-                sig = np.reshape(sig, newshape=(1,1))
+        # sigma_k
+        # print(S_yybar_k + S_0)
+        Sy_vert_ybar = S_yy_k - S_yybar_k.dot(S_ybarybar_k_inv).dot(S_yybar_k.T)
+        sig = stats.invwishart(scale=Sy_vert_ybar+S_0, df=np.sum(n[k])+n_0).rvs()
+        # sig = np.square(theta[k]['sigma'])
 
-            sig_inv = np.linalg.pinv(sig)
-            S_ybarybar_k_inv = np.linalg.pinv(S_ybarybar_k)
+        if type(sig) != np.ndarray:
+            sig = np.reshape(sig, newshape=(1,1))
 
-            A = stats.matrix_normal(np.dot(S_yy_k, S_ybarybar_k_inv), sig_inv, S_ybarybar_k).rvs()
+        sig_inv = np.linalg.pinv(sig)
+        M = np.dot(S_yy_k, S_ybarybar_k_inv) # TODO: or is this be
+        # M = np.dot(S_yybar_k, S_ybarybar_k_inv)
+        # M = np.dot(Sy_vert_ybar, S_ybarybar_k_inv)
+        V = sig_inv
+        K_inv = S_ybarybar_k_inv
+        A = stats.matrix_normal(M, rowcov=V, colcov=K_inv).rvs()
 
-            theta[k]['sigma'] = np.sqrt(sig[0,0])
-            theta[k]['A'] = A[0,0]
-    theta = [{'A': 0.9, 'sigma': np.sqrt(10)}, {'A': 0.99, 'sigma': 1}]
+        theta[k]['A'] = A[0,0]
+        theta[k]['sigma'] = np.sqrt(sig[0,0])
+    # theta = [{'A': 0.9, 'sigma': np.sqrt(10)}, {'A': 0.99, 'sigma': 1}]
     return theta
 
 def update_pi_and_theta(Yk, n, params, **kwargs):
@@ -397,7 +413,7 @@ def update_slds_regime_params(n, S_ybarybar, S_yybar, S_yy, params, priors, **kw
         kappa_[i] = kappa
         pi[i] = np.random.dirichlet(alpha * beta + kappa_ + n[i])
 
-    # theta = update_slds_theta(n, S_ybarybar, S_yybar, S_yy, theta, params, priors)
+    theta = update_slds_theta(n, S_ybarybar, S_yybar, S_yy, theta, params, priors)
 
     return {
         'pi': pi,
@@ -410,7 +426,7 @@ def update_params(params, pi, beta, theta):
 
     params['pi'] = pi
     params['beta'] = beta
-    # params['theta'] = theta
+    params['theta'] = theta
 
     return params
 
@@ -442,7 +458,7 @@ def blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, priors = [0,200,1,10
 #=============================================================
 # put it all together for the HDP-AR model
 #=============================================================
-def Gibbs_for_HDP_AR(Y, starting_params, priors = [0,200,1,10]):
+def Gibbs_for_HDP_AR(Y, starting_params, priors):
 
     # step 1
     params = starting_params
@@ -450,6 +466,7 @@ def Gibbs_for_HDP_AR(Y, starting_params, priors = [0,200,1,10]):
     # step 2
     bkwd_messages = backward_algorithm_slds(Y, params)
     state_par = state_assignments_slds(Y, bkwd_messages, params)
+    z, Yk, n = state_par['z'], state_par['Yk'], state_par['n']
 
     # set pseudo_obs = pseudo_obs
     Y_bar = np.zeros_like(Y)
@@ -458,8 +475,6 @@ def Gibbs_for_HDP_AR(Y, starting_params, priors = [0,200,1,10]):
 
     # step 5 caluculate the sufficient statistics for the pseudo_obs
     S_ybarybar, S_yybar, S_yy = slds_sufficient_statistics(Y, Y_bar, state_par, params)
-
-    z, Yk, n = state_par['z'], state_par['Yk'], state_par['n']
 
     step3_update = step_3(state_par, params)
     mbar = step3_update['mbar']
