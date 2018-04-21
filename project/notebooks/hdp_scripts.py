@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+
+'''
+hdp_scripts.py
+Author: Nicholas Hoernle
+Date: 20 April 2018
+A collection of functions that define a Gibbs sampler for a sticky hierarchical Dirichlet process hidden Markov model (see Emily Fox 2008) and the adjusted models for autoregressive and state space model data (see Fox 2009).
+'''
+
 import scipy.stats as stats
 import scipy as sp
 import pandas as pd
@@ -15,7 +24,7 @@ def backward_step(obs, likeihood_fn, pi, m_tplus1, L, **kwargs):
     messages += (np.log(pi) + likeihood_fn.logpdf(obs) + m_tplus1)
     return sp.misc.logsumexp(messages, axis=1)
 
-def backward_algorithm(Y, mean_func, cov_func, params, **kwargs):
+def backward_algorithm(Y, mean_func, cov_func, likelihood, params, **kwargs):
     '''
     Calculate the backward messages for all time T...1
     '''
@@ -37,7 +46,7 @@ def backward_algorithm(Y, mean_func, cov_func, params, **kwargs):
 
         mu_k_j = [[mean_func(theta, t, Y, j) for j in range(L)] for k in range(L)]
         sigma_k_j = [[cov_func(theta, t, Y, j) for j in range(L)] for k in range(L)]
-        likelihood_fn = stats.norm(mu_k_j, sigma_k_j)
+        likelihood_fn = likelihood(mu_k_j, sigma_k_j)
 
         bkwd[t] = backward_step(Y[t], likelihood_fn, pi, bkwd[t+1], L)
 
@@ -55,7 +64,7 @@ def forward_step(obs, likeihood_fn, pi_ztmin1, m_tplus1, L):
     prob = np.exp(np.log(pi_ztmin1) + likeihood_fn.logpdf(obs) + m_tplus1)
     return prob/np.sum(prob)
 
-def state_assignments(Y, bkwd, mean_func, cov_func, params, **kwargs):
+def state_assignments(Y, bkwd, mean_func, cov_func, likelihood, params, **kwargs):
     '''
     Sample the state assignment for z 1 to T and update the sets Y_k accordingly
     '''
@@ -78,7 +87,7 @@ def state_assignments(Y, bkwd, mean_func, cov_func, params, **kwargs):
 
         mus = [mean_func(theta, t, Y, j) for j in range(L)]
         sigmas = [cov_func(theta, t, Y, j) for j in range(L)]
-        likelihood = stats.norm(mus, sigmas)
+        likelihood = likelihood(mus, sigmas)
 
         # (a) compute the probability f_k(yt)
         prob_fk = forward_step(yt, likelihood, pi[z_tmin1], bkwd[t], L)
@@ -95,40 +104,6 @@ def state_assignments(Y, bkwd, mean_func, cov_func, params, **kwargs):
         'z': z,
         'n': n
     }
-
-
-#=============================================================
-# sufficient statistics for the SLDS model
-#=============================================================
-def slds_sufficient_statistics(Y, Y_bar, fwd_pass, params, **kwargs):
-    S_ybarybar, S_yybar, S_yy = [], [], []
-    M, K = params['priors']['M'], params['priors']['K']
-
-    for j in range(params['L']):
-        # for each model
-        indexes = np.where(fwd_pass['z'] == j)[0]
-
-        if len(indexes) <= 0:
-            y_b_k = K
-            yk_yb_k = np.dot(M, K)
-            y_k = np.dot(np.dot(M, K), M.T)
-        else:
-            Y_k = Y[indexes]
-            Y_bar_k = Y_bar[indexes]
-
-            y_b_k = np.dot(Y_bar_k, Y_bar_k.T) + K
-            yk_yb_k = np.dot(Y_k, Y_bar_k.T) + np.dot(M, K)
-            y_k = np.dot(Y_k, Y_k.T) + np.dot(np.dot(M, K), M.T)
-
-        S_ybarybar.append( y_b_k )
-        S_yybar.append( yk_yb_k )
-        S_yy.append( y_k )
-
-    return (
-        S_ybarybar,
-        S_yybar,
-        S_yy
-    )
 
 #=============================================================
 # some steps for the hdp hmm model
@@ -220,13 +195,13 @@ def update_params(params, pi, beta, theta):
 #=============================================================
 # put the sampler together
 #=============================================================
-def blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, theta_update, priors):
+def blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, likelihood, theta_update, priors):
 
     params = starting_params
     Y = np.array(Y)
 
-    bkwd_messages = backward_algorithm(Y, mean_func, cov_func, params)
-    state_par = state_assignments(Y, bkwd_messages, mean_func, cov_func, params)
+    bkwd_messages = backward_algorithm(Y, mean_func, cov_func, likelihood, params)
+    state_par = state_assignments(Y, bkwd_messages, mean_func, cov_func, likelihood, params)
     z, n = state_par['z'], state_par['n']
 
     step3_update = step_3(state_par, params)
@@ -275,6 +250,37 @@ def update_theta(Y, fwd_vals, params, priors, **kwargs):
 
     return theta
 
+# sufficient statistics for the SLDS model
+def slds_sufficient_statistics(Y, Y_bar, fwd_pass, params, **kwargs):
+    S_ybarybar, S_yybar, S_yy = [], [], []
+    M, K = params['priors']['M'], params['priors']['K']
+
+    for j in range(params['L']):
+        # for each model
+        indexes = np.where(fwd_pass['z'] == j)[0]
+
+        if len(indexes) <= 0:
+            y_b_k = K
+            yk_yb_k = np.dot(M, K)
+            y_k = np.dot(np.dot(M, K), M.T)
+        else:
+            Y_k = Y[indexes]
+            Y_bar_k = Y_bar[indexes]
+
+            y_b_k = np.dot(Y_bar_k, Y_bar_k.T) + K
+            yk_yb_k = np.dot(Y_k, Y_bar_k.T) + np.dot(M, K)
+            y_k = np.dot(Y_k, Y_k.T) + np.dot(np.dot(M, K), M.T)
+
+        S_ybarybar.append( y_b_k )
+        S_yybar.append( yk_yb_k )
+        S_yy.append( y_k )
+
+    return (
+        S_ybarybar,
+        S_yybar,
+        S_yy
+    )
+
 def update_slds_theta(Y, fwd_vals, params, priors):
 
     S_0, n_0 = priors
@@ -317,11 +323,11 @@ def update_slds_theta(Y, fwd_vals, params, priors):
 
     return theta
 
-#=============================================================
-# put it all together for the HDP-AR model
-#=============================================================
 
 
+#=============================================================
+# Here are the different sampler models
+#=============================================================
 
 def sticky_HMM(Y, starting_params, priors = [0,200,1,10]):
 
@@ -331,7 +337,7 @@ def sticky_HMM(Y, starting_params, priors = [0,200,1,10]):
     def cov_func(theta, t, Y, j):
         return theta[j][1]
 
-    return blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, update_theta, priors)
+    return blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, stats.norm, update_theta, priors)
 
 def sticky_HDP_AR(Y, starting_params, priors):
 
@@ -343,4 +349,4 @@ def sticky_HDP_AR(Y, starting_params, priors):
     def cov_func(theta, t, Y, j):
         return theta[j]['sigma']
 
-    return blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, update_slds_theta, priors)
+    return blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, stats.norm, update_slds_theta, priors)
