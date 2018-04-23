@@ -87,10 +87,10 @@ def state_assignments(Y, bkwd, mean_func, cov_func, likelihood, params, **kwargs
 
         mus = [mean_func(theta, t, Y, j) for j in range(L)]
         sigmas = [cov_func(theta, t, Y, j) for j in range(L)]
-        likelihood = likelihood(mus, sigmas)
+        likelihood_fn = likelihood(mus, sigmas)
 
         # (a) compute the probability f_k(yt)
-        prob_fk = forward_step(yt, likelihood, pi[z_tmin1], bkwd[t], L)
+        prob_fk = forward_step(yt, likelihood_fn, pi[z_tmin1], bkwd[t], L)
 
         # (b) sample a new z_t
         z[t] = np.random.choice(options, p=prob_fk.astype(np.float64))
@@ -264,8 +264,8 @@ def slds_sufficient_statistics(Y, Y_bar, fwd_pass, params, **kwargs):
             yk_yb_k = np.dot(M, K)
             y_k = np.dot(np.dot(M, K), M.T)
         else:
-            Y_k = Y[indexes]
-            Y_bar_k = Y_bar[indexes]
+            Y_k = Y[indexes].T
+            Y_bar_k = Y_bar[indexes].T
 
             y_b_k = np.dot(Y_bar_k, Y_bar_k.T) + K
             yk_yb_k = np.dot(Y_k, Y_bar_k.T) + np.dot(M, K)
@@ -300,11 +300,9 @@ def update_slds_theta(Y, fwd_vals, params, priors):
     for k in range(0,L):
 
         S_ybarybar_k, S_yybar_k, S_yy_k = S_ybarybar[k], S_yybar[k], S_yy[k]
-
         S_ybarybar_k_inv = np.linalg.pinv(S_ybarybar_k)
 
         # sigma_k
-        # print(S_yybar_k + S_0)
         Sy_vert_ybar = S_yy_k - S_yybar_k.dot(S_ybarybar_k_inv).dot(S_yybar_k.T)
         sig = stats.invwishart(scale=Sy_vert_ybar+S_0, df=np.sum(n[k])+n_0).rvs()
         # sig = np.square(theta[k]['sigma'])
@@ -318,8 +316,8 @@ def update_slds_theta(Y, fwd_vals, params, priors):
         K_inv = S_ybarybar_k_inv
         A = stats.matrix_normal(M, rowcov=V, colcov=K_inv).rvs()
 
-        theta[k]['A'] = A[0,0]
-        theta[k]['sigma'] = np.sqrt(sig[0,0])
+        theta[k]['A'] = A
+        theta[k]['sigma'] = sig
 
     return theta
 
@@ -343,10 +341,34 @@ def sticky_HDP_AR(Y, starting_params, priors):
 
     def mean_func(theta, t, Y, j):
         if t == 0:
-            return Y[t]*theta[j]['A']
-        return Y[t-1]*theta[j]['A']
+            return Y[t]*theta[j]['A'][0][0]
+        return Y[t-1]*theta[j]['A'][0][0]
+
+    def cov_func(theta, t, Y, j):
+        return np.sqrt(theta[j]['sigma'][0][0])
+
+    return blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, stats.norm, update_slds_theta, priors)
+
+class MultivariateNormal:
+    def __init__(self, means, covariances):
+        self.means = np.array(means)
+        self.const = - 0.5*np.log(2*np.pi*np.linalg.det(covariances))
+        self.cov_inv = np.linalg.pinv(covariances)
+
+    def logpdf(self, x):
+        mean_shape = self.means.shape
+        if (mean_shape[0] == mean_shape[1]) and (len(mean_shape) > 2):
+            return self.const + np.array([[(x-self.means[i][j]).T.dot(self.cov_inv[i][j]).dot(x-self.means[i][j]) for j,_ in enumerate(row)] for i,row in enumerate(self.means)])
+        return self.const + np.array([(x-self.means[i]).T.dot(self.cov_inv[i]).dot(x-self.means[i]) for i,_ in enumerate(self.means)])
+
+def sticky_Multi_HDP_AR(Y, starting_params, priors):
+
+    def mean_func(theta, t, Y, j):
+        if t == 0:
+            return np.dot(theta[j]['A'], Y[t])
+        return np.dot(theta[j]['A'], Y[t-1])
 
     def cov_func(theta, t, Y, j):
         return theta[j]['sigma']
 
-    return blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, stats.norm, update_slds_theta, priors)
+    return blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, MultivariateNormal, update_slds_theta, priors)
