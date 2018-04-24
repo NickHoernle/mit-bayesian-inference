@@ -284,8 +284,9 @@ def slds_sufficient_statistics(Y, Y_bar, fwd_pass, params, **kwargs):
 def update_slds_theta(Y, fwd_vals, params, priors):
 
     S_0, n_0 = priors
-
+    num_iter = 10
     L = params['L']
+    D = params['D']
     theta = params['theta']
     n = fwd_vals['n']
 
@@ -304,20 +305,23 @@ def update_slds_theta(Y, fwd_vals, params, priors):
 
         # sigma_k
         Sy_vert_ybar = S_yy_k - S_yybar_k.dot(S_ybarybar_k_inv).dot(S_yybar_k.T)
-        sig = stats.invwishart(scale=Sy_vert_ybar+S_0, df=np.sum(n[k])+n_0).rvs()
-        # sig = np.square(theta[k]['sigma'])
 
-        if type(sig) != np.ndarray:
-            sig = np.reshape(sig, newshape=(1,1))
+        sigs = stats.invwishart(scale=Sy_vert_ybar+S_0, df=np.sum(n[k])+n_0).rvs(size=num_iter)
+        A = np.zeros(shape=(D,D))
+        Sigma = np.zeros(shape=(D,D))
 
-        sig_inv = np.linalg.pinv(sig)
-        M = np.dot(S_yy_k, S_ybarybar_k_inv)
-        V = sig_inv
-        K_inv = S_ybarybar_k_inv
-        A = stats.matrix_normal(M, rowcov=V, colcov=K_inv).rvs()
+        for sig in sigs:
+            if type(sig) != np.ndarray:
+                sig = np.reshape(sig, newshape=(1,1))
+            Sigma += sig
+            sig_inv = np.linalg.pinv(sig)
+            M = np.dot(S_yybar_k, S_ybarybar_k_inv)
+            V = sig_inv
+            K_inv = S_ybarybar_k_inv
+            A += stats.multivariate_normal(mean=M.reshape(-1,), cov=np.kron(K_inv, sig), allow_singular=True).rvs().reshape(-D,D)
 
-        theta[k]['A'] = A
-        theta[k]['sigma'] = sig
+        theta[k]['A'] = A/num_iter
+        theta[k]['sigma'] = Sigma/num_iter
 
     return theta
 
@@ -351,15 +355,18 @@ def sticky_HDP_AR(Y, starting_params, priors):
 
 class MultivariateNormal:
     def __init__(self, means, covariances):
-        self.means = np.array(means)
-        self.const = - 0.5*np.log(2*np.pi*np.linalg.det(covariances))
-        self.cov_inv = np.linalg.pinv(covariances)
+        self.means = np.array(means, dtype=np.float128)
+        self.cov = np.array(covariances, dtype=np.float128)
+        # self.const = -0.5*np.log(np.linalg.det(2*np.pi*np.array(covariances)))
+        self.cov_inv = np.linalg.pinv(self.cov.astype(np.float64)).astype(np.float128)
 
     def logpdf(self, x):
         mean_shape = self.means.shape
-        if (mean_shape[0] == mean_shape[1]) and (len(mean_shape) > 2):
-            return self.const + np.array([[(x-self.means[i][j]).T.dot(self.cov_inv[i][j]).dot(x-self.means[i][j]) for j,_ in enumerate(row)] for i,row in enumerate(self.means)])
-        return self.const + np.array([(x-self.means[i]).T.dot(self.cov_inv[i]).dot(x-self.means[i]) for i,_ in enumerate(self.means)])
+        if len(mean_shape) == 1:
+            return -0.5*np.log([2*np.pi*np.linalg.det(self.cov[i].astype(np.float64)).astype(np.float128) for i,row in enumerate(self.cov)]) - 0.5*np.array((x-self.means).T.dot(self.cov_inv).dot(x-self.means))
+        elif (mean_shape[0] == mean_shape[1]) and (len(mean_shape) > 2):
+            return -0.5*np.log([[2*np.pi*np.linalg.det(self.cov[i,j].astype(np.float64)).astype(np.float128) for j,_ in enumerate(row)] for i,row in enumerate(self.cov)]) - 0.5*np.array([[(x-self.means[i][j]).T.dot(self.cov_inv[i][j]).dot(x-self.means[i][j]) for j,_ in enumerate(row)] for i,row in enumerate(self.means)])
+        return -0.5*np.log(2*np.pi*np.linalg.det(self.cov.astype(np.float64))).astype(np.float128) - 0.5*np.array([(x-self.means[i]).T.dot(self.cov_inv[i]).dot(x-self.means[i]) for i,_ in enumerate(self.means)])
 
 def sticky_Multi_HDP_AR(Y, starting_params, priors):
 
