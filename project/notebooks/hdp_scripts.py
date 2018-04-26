@@ -399,18 +399,21 @@ def sticky_HDP_AR(Y, starting_params, priors):
     return blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, stats.norm, update_slds_theta, priors)
 
 def sticky_Multi_HDP_AR(Y, starting_params, priors):
-
-    def mean_func(theta, t, Y, j):
-        if t == 0:
-            return np.dot(Y[t], theta[j]['A'])
-        return np.dot(Y[t-1], theta[j]['A'])
+    if starting_params['D'] == 1:
+        def mean_func(theta, t, Y, j):
+            if t == 0:
+                return np.dot(Y[t], theta[j]['A'])[0]
+            return np.dot(Y[t-1], theta[j]['A'])[0]
+    else:
+        def mean_func(theta, t, Y, j):
+            if t == 0:
+                return np.dot(Y[t], theta[j]['A'])
+            return np.dot(Y[t-1], theta[j]['A'])
 
     def cov_func(theta, t, Y, j):
         return theta[j]['sigma']
 
     return blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, MultivariateNormal, update_slds_theta, priors)
-
-
 
 
 def sticky_Multi_HDP_AR2(Y, starting_params, priors):
