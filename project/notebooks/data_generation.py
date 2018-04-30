@@ -7,6 +7,7 @@ Date: 25 April 2018
 Generate data from a range of switching systems.
 '''
 import numpy as np
+import scipy.stats as stats
 
 def generate_data_1D(num_chains=2, length=1000, switch_prob=0.02, ar=1, **kwargs):
     '''
@@ -19,9 +20,9 @@ def generate_data_1D(num_chains=2, length=1000, switch_prob=0.02, ar=1, **kwargs
     dim = 1
 
     def fn1(A, sig):
-        if type(A) is list:
+        if ar>1:
             def fn(x):
-                return A[0]*x[0] + A[1]*x[1] + np.random.normal(0,np.sqrt(sig))
+                return A[1]*x[0] + A[0]*x[1] + np.random.normal(0,np.sqrt(sig))
         else:
             def fn(x):
                 return A*x + np.random.normal(0,np.sqrt(sig))
@@ -98,3 +99,40 @@ def generate_data(X, dim, num_chains, length, switch_prob, ar=1):
             "chains": np.array(chains),
             "Y": np.array(ys)
         }
+
+def generate_data_slsd(dim, R=0.01*np.eye(2), num_chains=2, length=1000, switch_prob=0.02, **kwargs):
+        def fn1(A, sig):
+            def fn(x):
+                scale = np.random.gamma(10,2)
+                return x.dot(A) + np.random.multivariate_normal(np.zeros(len(A)), sig)
+            return fn
+
+        X = []
+        if "chain_params" in kwargs:
+            assert len(kwargs['chain_params']) == num_chains
+
+            for param in kwargs['chain_params']:
+                A, sig = param['A'], param['sigma']
+                X.append(fn1(A, sig))
+
+        Xs = [np.zeros(dim)]
+        chains = []
+        chain = np.random.choice(np.arange(0,num_chains), p=np.ones(num_chains)/num_chains)
+        chains.append(chain)
+        ys = [stats.multivariate_normal(Xs[-1], R).rvs()]
+
+        for t in range(length-1):
+
+            if np.random.uniform(0,1) < 0.02:
+                options = list(range(0, num_chains))
+                del options[chain]
+                chain = np.random.choice(options)
+
+            Xs.append(X[chain](Xs[-1]))
+            ys.append(stats.multivariate_normal(Xs[-1], R).rvs())
+            chains.append(chain)
+
+        return {
+                "chains": np.array(chains),
+                "Y": np.array(ys)
+            }
