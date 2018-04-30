@@ -1,0 +1,34 @@
+\documentclass[twoside]{article}
+\usepackage{amsmath,amssymb,amsthm,graphicx}
+\usepackage{epsfig}
+\usepackage[authoryear]{natbib}
+\bibliographystyle{unsrtnat}
+\usepackage{geometry}
+\usepackage{setspace}
+
+\geometry{twoside,
+          letterpaper, % i.e, paperwidth=210mm and paperheight=297mm,
+          top=25mm,
+          bottom=45mm,
+          left=25mm,
+          right=25mm,
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5cm}
+% Local Macros Put your favorite macros here that don't appear in
+% stat-macros.tex.  We can eventually incorporate them into
+% stat-macros.tex if they're of general use.
+
+\begin{document}
+
+\textbf{Reflection - Sparse Gaussian Process - Snelson, Ghahramani}\\
+\textbf{Nicholas Hoernle \hfill \today}
+
+% What problem are the authors trying to solve by using GPs with pseudo-inputs? I.e., what is lacking in standard GPs and previous attempts at sparse GPs?
+The authors attempt to solve the $O(N^3)$ computational overhead of the GP inference (dominated by the matrix inversion operation of the Kernel matrix). They rather suggest the selection of $M << N$ pseudo-datapoints to use as training data, thus requiring a smaller and therefore more computationally tractable Kernel matrix. Alternative approaches select a subset of real datapoints but experience problems with hyperparameter optimization due to local optima that result from the subset of data that are selected. These authors propose to rather introduce pseudo-datapoints, the positions of which can be optimized jointly to the hyperparameter optimization.
+
+% How does the complexity of the proposed method compare with alternatives? What do you think of the authors' argument in the last paragraph of Section 4?
+In the last paragraph, the authors give a heuristic argument for the largest computational overhead of the SPGP and alternative approaches. They argue that while the SPGP is more computationally expensive than the alternatives, the gradient ascent algorithm dominates the computation cost and therefore the SPGP specific solution is favorable due to the better accuracy that is achieved. The plots in Figure 3 suggest that the SPGP also converges more quickly (\textbf{by iteration}) than the alternatives and therefore the algorithm might end up being more computationally efficient in practice. There lacks a conclusive investigation into the wall time computation of the alternatives that are presented. I am also concerned by the mention of the high computation cost of the gradient ascent which, in extreme cases, could defeat the entire aim of reducing the $N^3$ computation of the standard GP.
+
+\end{document}

@@ -1,0 +1,35 @@
+\documentclass[twoside]{article}
+\usepackage{amsmath,amssymb,amsthm,graphicx}
+\usepackage{epsfig}
+\usepackage[authoryear]{natbib}
+\bibliographystyle{unsrtnat}
+\usepackage{geometry}
+\usepackage{setspace}
+
+\geometry{twoside,
+          letterpaper, % i.e, paperwidth=210mm and paperheight=297mm,
+          top=25mm,
+          bottom=45mm,
+          left=25mm,
+          right=25mm,
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5cm}
+% Local Macros Put your favorite macros here that don't appear in
+% stat-macros.tex.  We can eventually incorporate them into
+% stat-macros.tex if they're of general use.
+
+\begin{document}
+
+\textbf{Reflection - Gaussian Process 2 - Rasmussen, Williams}\\
+\textbf{Nicholas Hoernle \hfill \today}
+
+\begin{enumerate}
+  \item (a) shows the generating GP with the blue solid line showing the signal. The data has a small variance ($\sigma_n=0.1$) around its mean and so it is natural that the data looks as if it lies on top of the signal. (b) shows an inferred GP with a small length scale (corresponding to small covariance between data that are not close together) and so the inferred mean has a higher frequency to try capture more variance in the data. This means the blue line tries to `touch' the different data points. In contrast (c) uses a large length scale and so the mean is significantly smoothed. To explain the data, the noise around the mean is increased and therefore the data lie far from the blue line. As the covariance among data is decreased, the certainty of the estimator decreases (the variance - shown by the gray area - increases) because the model has a smaller effective sample size when making a prediction.
+  \item We make a trade-off between the complexity of a model and its generalization to other data. Fig 2 represents this trade-off where we can get strong estimates for parameters of simple models but these might not describe the data well (hence giving a low marginal likelihood). In contrast to this, we can try to approximate a complex model but this may result in an uncertain estimate. In practice, we'd like to find an intermediate model where the parameter estimates are strong but it still captures the variability in the data.
+  \item Eq. 5.16 serves to capture the seasonal variation in the $CO_2$ levels (specifically they allow a decay away from exact periodicity). The seasonal periodicity is caused by the different levels of $CO_2$ intake given the season of the year.
+\end{enumerate}
+% \bibliography{references}
+
+\end{document}
