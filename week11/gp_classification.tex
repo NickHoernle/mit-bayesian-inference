@@ -1,0 +1,33 @@
+\documentclass[twoside]{article}
+\usepackage{amsmath,amssymb,amsthm,graphicx}
+\usepackage{epsfig}
+\usepackage[authoryear]{natbib}
+\bibliographystyle{unsrtnat}
+\usepackage{geometry}
+\usepackage{setspace}
+
+\geometry{twoside,
+          letterpaper, % i.e, paperwidth=210mm and paperheight=297mm,
+          top=25mm,
+          bottom=45mm,
+          left=25mm,
+          right=25mm,
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5cm}
+% Local Macros Put your favorite macros here that don't appear in
+% stat-macros.tex.  We can eventually incorporate them into
+% stat-macros.tex if they're of general use.
+
+\begin{document}
+
+\textbf{Reflection - GP Classification}\\
+\textbf{Nicholas Hoernle \hfill \today}
+
+\begin{enumerate}
+\item The Laplace approximation is used when we require a faster solution. As $N$ becomes large, or when the algorithm is required to execute quickly, the MCMC alternative will not be attractive. If we'd like stronger convergence guarantees (of converging to the correct posterior given enough samples) then we'd probably want to choose the MCMC route.
+\item A Laplace approximation is not the same as Variational Bayes. We can draw parallels in that (if Q consists of Gaussians) both appproaches use a Gaussian to approximate the posterior. The Laplace approximation finds a Gaussian around the MAP value whereas the VB objective is entirely different by minimizing the KL divergence.
+\item Since the posterior $p(\mathcal{f} \mid X, y)$ is Gaussian in GP regression, the Laplace approximation will be exact and the solution will be the same as the GP regression solution.
+\end{enumerate}
+\end{document}
