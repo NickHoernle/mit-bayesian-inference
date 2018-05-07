@@ -26,8 +26,8 @@
 \textbf{Nicholas Hoernle \hfill \today}
 
 \begin{enumerate}
-\item The Laplace approximation is used when we require a faster solution. As $N$ becomes large, or when the algorithm is required to execute quickly, the MCMC alternative will not be attractive. If we'd like stronger convergence guarantees (of converging to the correct posterior given enough samples) then we'd probably want to choose the MCMC route.
-\item A Laplace approximation is not the same as Variational Bayes. We can draw parallels in that (if Q consists of Gaussians) both appproaches use a Gaussian to approximate the posterior. The Laplace approximation finds a Gaussian around the MAP value whereas the VB objective is entirely different by minimizing the KL divergence.
-\item Since the posterior $p(\mathcal{f} \mid X, y)$ is Gaussian in GP regression, the Laplace approximation will be exact and the solution will be the same as the GP regression solution.
+\item The Laplace approximation is used when we require a (more) computationally efficient solution. As $N$ becomes large, or when the algorithm is required to execute quickly, the MCMC alternative will not be attractive. If we'd like stronger convergence guarantees (of converging to the correct posterior given enough samples) then we'd choose the MCMC route.
+\item The Laplace approximation is not the same as Variational Bayes. We can draw parallels in that (if Q consists of Gaussians) both approaches use a Gaussian to approximate certain aspects of the posterior. The Laplace approximation finds a Gaussian around the MAP value whereas the VB objective is entirely different by minimizing the KL divergence between some family of approximating distributions and the true posterior.
+\item Since the posterior $p(f \mid X, y)$ is Gaussian in GP regression, the Laplace approximation will be exact and the solution will be the same as the GP regression solution.
 \end{enumerate}
 \end{document}
