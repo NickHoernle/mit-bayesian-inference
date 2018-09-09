@@ -15,7 +15,7 @@ def generateTransitionMatrix(dim):
     return A
 
 def generateCovMatrix(dim, M, scale, reg):
-    noise_cov = scale*stats.invwishart(scale=10*np.eye(3), df=10).rvs()
+    noise_cov = stats.invwishart(scale=scale*10*np.eye(3), df=20).rvs()
     return noise_cov
 
 def run_experiment_ar(iter_number, data_choice=0, **kwargs):
@@ -29,9 +29,9 @@ def run_experiment_ar(iter_number, data_choice=0, **kwargs):
     # generate the data
     ####################################################################
     if data_choice == 0:
-        chain_params = [{"A": generateTransitionMatrix(D), "sigma": generateCovMatrix(3, np.zeros(shape=(D, D)),1 ,5)},
-                        {"A": generateTransitionMatrix(D), "sigma": generateCovMatrix(3, np.zeros(shape=(D, D)),2 ,5)},
-                        {"A": generateTransitionMatrix(D), "sigma": generateCovMatrix(3, np.zeros(shape=(D, D)),5 ,5)}]
+        chain_params = [{"A": generateTransitionMatrix(D), "sigma": generateCovMatrix(3, np.zeros(shape=(D, D)), 1, 5)},
+                        {"A": generateTransitionMatrix(D), "sigma": generateCovMatrix(3, np.zeros(shape=(D, D)), 3, 5)},
+                        {"A": generateTransitionMatrix(D), "sigma": generateCovMatrix(3, np.zeros(shape=(D, D)), 5, 5)}]
 
         res_ = gen.generate_data_nD(dim=3,
                                    num_chains=len(chain_params),
@@ -42,7 +42,8 @@ def run_experiment_ar(iter_number, data_choice=0, **kwargs):
 
     elif data_choice == 1:
         D = 1
-        chain_params = [{"A": [-0.4, -0.2], "sigma": 2}, {"A": [0.7, 0.2], "sigma": 2}, {"A": [-0.6, 0.2], "sigma": 4}]
+        chain_params = [{"A": np.random.uniform(-0.5,0.5,size=2), "sigma": 0.5}, {"A": np.random.uniform(-0.5,0.5,size=2), "sigma": 2}, {"A": np.random.uniform(-0.5,0.5,size=2), "sigma": 4}]
+
         res_ = gen.generate_data_1D(num_chains=len(chain_params),
                                    length=kwargs['chain_length'] if 'chain_length' in kwargs else 1000,
                                    switch_prob=0.02,
@@ -51,11 +52,11 @@ def run_experiment_ar(iter_number, data_choice=0, **kwargs):
         chains, Y = res_['chains'], res_['Y'][:,0]
 
     elif data_choice == 2:
-        chain_params = [{"A": generateTransitionMatrix(dim), "sigma": generateCovMatrix(3, np.zeros(shape=(dim, dim)), 4, 1)},
-                        {"A": generateTransitionMatrix(dim), "sigma": generateCovMatrix(3, np.zeros(shape=(dim, dim)), 1, 1)},
-                        {"A": generateTransitionMatrix(dim), "sigma": generateCovMatrix(3, np.zeros(shape=(dim, dim)), 2, 6)}]
+        chain_params = [{"A": generateTransitionMatrix(D), "sigma": generateCovMatrix(3, np.zeros(shape=(D, D)), 1,   1)},
+                        {"A": generateTransitionMatrix(D), "sigma": generateCovMatrix(3, np.zeros(shape=(D, D)), 3,   1)},
+                        {"A": generateTransitionMatrix(D), "sigma": generateCovMatrix(3, np.zeros(shape=(D, D)), 5,   6)}]
 
-        R = generateCovMatrix(D, 0, 2, 5)
+        R = generateCovMatrix(D, 0, 1, 5)
         res_ = gen.generate_data_slsd(dim=3,
                                      R=R,
                                      num_chains=len(chain_params),
@@ -68,7 +69,7 @@ def run_experiment_ar(iter_number, data_choice=0, **kwargs):
     starting_params['pi']    = np.random.dirichlet(alpha=np.ones(L), size=L)
     starting_params['R']     = kwargs['R'] if 'R' in kwargs else 1*np.eye(D)
     starting_params['R0']    = kwargs['R0'] if 'R0' in kwargs else 1*np.eye(D)
-    starting_params['r0']    = kwargs['r0'] if 'r0' in kwargs else 1e1
+    starting_params['r0']    = kwargs['r0'] if 'r0' in kwargs else 5e1
     starting_params['C']     = kwargs['C'] if 'C' in kwargs else np.eye(D)
     starting_params['D']     = D
     starting_params['theta'] = [{'A': np.eye(D, dtype=np.float64)*np.random.normal(0,1,size=D), 'sigma': 1*np.eye(D, dtype=np.float64)} for i in range(L)]
@@ -76,7 +77,7 @@ def run_experiment_ar(iter_number, data_choice=0, **kwargs):
     starting_params['T']     = kwargs['chain_length'] if 'chain_length' in kwargs else 1000
     starting_params['alpha'] = kwargs['alpha'] if 'alpha' in kwargs else 1
     starting_params['beta']  = np.random.dirichlet(np.ones(starting_params['L']))
-    starting_params['kappa'] = kwargs['kappa'] if 'kappa' in kwargs else 10
+    starting_params['kappa'] = kwargs['kappa'] if 'kappa' in kwargs else len(Y)/100
     starting_params['gamma'] = kwargs['gamma'] if 'gamma' in kwargs else 1
     starting_params['Y'] = Y
     ####################################################################
@@ -87,7 +88,7 @@ def run_experiment_ar(iter_number, data_choice=0, **kwargs):
         # run the AR1 model
         starting_params['priors'] = {
             'M': np.zeros(shape=(D,D), dtype=np.float64),
-            'K': 10*np.eye(D, dtype=np.float64)
+            'K': 1*np.eye(D, dtype=np.float64)
         }
 
         if data_choice == 1:
@@ -107,7 +108,7 @@ def run_experiment_ar(iter_number, data_choice=0, **kwargs):
                                                  chains=chains)
         print()
         print("********************************************************")
-        print("******************DONE WITH AR(1)***********************")
+        print("******************DONE WITH AR(1), iter: {}, data: {}***".format(iter_number, data_choice))
         print("********************************************************")
         print()
 
@@ -119,7 +120,7 @@ def run_experiment_ar(iter_number, data_choice=0, **kwargs):
         starting_params['priors'] = {
             # need to adjust the priors slightly
             'M': np.zeros(shape=(D,D*2), dtype=np.float64),
-            'K': 10*np.eye(D*2, dtype=np.float64)
+            'K': 1*np.eye(D*2, dtype=np.float64)
         }
 
         _, res, assignments_ar2, hamming_ar2 = hdp.sticky_Multi_HDP_AR2(Y, copy.deepcopy(starting_params),
@@ -131,7 +132,7 @@ def run_experiment_ar(iter_number, data_choice=0, **kwargs):
 
         print()
         print("********************************************************")
-        print("******************DONE WITH AR(2)***********************")
+        print("******************DONE WITH AR(2), iter: {}, data: {}***".format(iter_number, data_choice))
         print("********************************************************")
         print()
 
@@ -141,30 +142,31 @@ def run_experiment_ar(iter_number, data_choice=0, **kwargs):
             D = 2
             starting_params['R']     = kwargs['R'] if 'R' in kwargs else 1e-1*np.eye(1)
             starting_params['R0']    = kwargs['R0'] if 'R0' in kwargs else 1e-1*np.eye(1)
-            # starting_params['r0']    = kwargs['r0'] if 'r0' in kwargs else 1e1
+            starting_params['r0']    = kwargs['r0'] if 'r0' in kwargs else 1e1
             starting_params['C']     = np.array([[1, 0]], dtype=np.float64)
             starting_params['D']     = D
-            starting_params['theta'] = [{'A': np.eye(D, dtype=np.float64)*np.random.normal(0,1,size=D), 'sigma': 0.1*np.eye(D, dtype=np.float64)} for i in range(L)]
+            starting_params['kappa'] = kwargs['kappa'] if 'kappa' in kwargs else len(Y)/5 # need a stronger prior on kappa
+            starting_params['theta'] = [{'A': np.eye(D, dtype=np.float64)*np.random.normal(0,1,size=D), 'sigma': 1*np.eye(D, dtype=np.float64)} for i in range(L)]
             starting_params['priors'] = {
                 'M': np.zeros(shape=(D,D), dtype=np.float64),
-                'K': 10*np.eye(D, dtype=np.float64),
+                'K': 1*np.eye(D, dtype=np.float64),
             }
             _, z, assignments_slds, hamming_slds = hdp.SLDS_blocked_sampler(Y, copy.deepcopy(starting_params),
-                                                  priors=[1e-1*np.eye(D), D],
+                                                  priors=[1*np.eye(D), D],
                                                   num_iter=kwargs['num_iter'] if 'num_iter' in kwargs else 5000,
                                                   verbose=True,
                                                   return_assignments=True,
                                                   chains=chains,
                                                   Y_tilde = np.random.normal(0,1,size=(starting_params['T'], D)).astype(np.float64))
         else:
-            starting_params['theta'] = [{'A': np.array(np.eye(D)), 'sigma': 1*np.eye(D)} for i in range(L)]
+            starting_params['theta'] = [{'A': np.array(np.eye(D))*np.random.normal(0,1,size=D), 'sigma': 1*np.eye(D)} for i in range(L)]
             starting_params['priors'] = {
                 'M': np.zeros(shape=(D,D)),
-                'K': 10*np.eye(D)
+                'K': 1*np.eye(D)
             }
 
             _, z, assignments_slds, hamming_slds = hdp.SLDS_blocked_sampler(Y, copy.deepcopy(starting_params),
-                                                  priors=[1e-1*np.eye(D), D],
+                                                  priors=[1*np.eye(D), D],
                                                   num_iter=kwargs['num_iter'] if 'num_iter' in kwargs else 5000,
                                                   verbose=True,
                                                   return_assignments=True,
@@ -172,7 +174,7 @@ def run_experiment_ar(iter_number, data_choice=0, **kwargs):
                                                   Y_tilde = np.random.normal(0,1,size=(starting_params['T'], D)).astype(np.float64))
         print()
         print("********************************************************")
-        print("******************DONE WITH SLDS************************")
+        print("******************DONE WITH SLDS, iter: {}, data: {}***".format(iter_number, data_choice))
         print("********************************************************")
         print()
 

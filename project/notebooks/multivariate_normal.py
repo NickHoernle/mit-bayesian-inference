@@ -7,8 +7,7 @@ forward and backward computations.
 import numpy as np
 
 def invert(x):
-    L = np.linalg.inv(np.linalg.cholesky(np.array(x, dtype=np.float64)))
-    return np.dot(L.T,L)
+    return np.linalg.inv(np.array(x, dtype=np.float32))
 
 class MultivariateNormal:
     def __init__(self, means, covariances):

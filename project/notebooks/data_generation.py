@@ -22,7 +22,7 @@ def generate_data_1D(num_chains=2, length=1000, switch_prob=0.02, ar=1, **kwargs
     def fn1(A, sig):
         if ar>1:
             def fn(x):
-                return A[1]*x[0] + A[0]*x[1] + np.random.normal(0,np.sqrt(sig))
+                return A[1]*x[0] + A[0]*x[1] + np.random.normal(0,sig)
         else:
             def fn(x):
                 return A*x + np.random.normal(0,np.sqrt(sig))
@@ -41,7 +41,7 @@ def generate_data_1D(num_chains=2, length=1000, switch_prob=0.02, ar=1, **kwargs
         for i in range(num_chains):
             A = np.random.beta(1, kwargs['chain_gen_priors'][0])
             sig = np.random.gamma(1,kwargs['chain_gen_priors'][1])
-            X.append(lambda x: A*x + np.random.normal(0,np.sqrt(sig)))
+            X.append(lambda x: A*x + np.random.normal(0,sig))
 
     return generate_data(X, dim, num_chains, length, switch_prob, ar=ar)
 
