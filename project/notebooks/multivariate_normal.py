@@ -5,6 +5,7 @@ Need a custom multivariate normal class for fast evaluation of differnet normals
 forward and backward computations.
 '''
 import numpy as np
+import scipy as sp
 
 def invert(x):
     return np.linalg.inv(np.array(x, dtype=np.float32))
@@ -29,5 +30,31 @@ class MultivariateNormal:
             def logpdf(self, x):
                 self.cov_inv = np.array([invert(self.cov[i]) for i in range(mean_shape[0])])
                 return self.const - 0.5*np.array([(x-self.means[i]).T.dot(self.cov_inv[i]).dot(x-self.means[i]) for i,_ in enumerate(self.means)])
+
+        setattr(self.__class__, 'logpdf', logpdf)
+
+class Categorical:
+    def __init__(self, means, covariances):
+        self.means = np.array(means)
+        mean_shape = self.means.shape
+
+        if len(mean_shape) == 1:
+            self.means -= sp.misc.logsumexp(self.means)
+            # normalize the probabilities
+            def logpdf(self, x):
+                index = int(x)
+                return self.means[index]
+
+        elif (mean_shape[0] == mean_shape[1]) and (len(mean_shape) > 2):
+            self.means -= sp.misc.logsumexp(self.means, axis=-1).reshape(self.means.shape[0],self.means.shape[1],-1)
+            def logpdf(self, x):
+                index = int(x)
+                return [[m[index] for m in c] for c in self.means]
+
+        else:
+            self.means -= sp.misc.logsumexp(self.means, axis=-1).reshape(self.means.shape[0],-1)
+            def logpdf(self, x):
+                index = int(x)
+                return [m[index] for m in self.means]
 
         setattr(self.__class__, 'logpdf', logpdf)

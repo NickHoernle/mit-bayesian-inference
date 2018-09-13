@@ -16,6 +16,7 @@ import time
 # custom scripts:
 import classification_evaluation as hdp_eval
 from multivariate_normal import MultivariateNormal
+from multivariate_normal import Categorical
 
 def invert(x):
     L = np.linalg.inv(np.array(x, dtype=np.float32))
@@ -73,7 +74,6 @@ def forward_step(obs, likeihood_fn, pi_ztmin1, m_tplus1, L):
     The backward message that is passed from zt to zt-1 given by the HMM:
         P(y1:T \mid z_{t-1}, \pi, \theta)
     '''
-
     prob = np.log(pi_ztmin1) + likeihood_fn.logpdf(obs) + m_tplus1
     return prob
 
@@ -311,6 +311,27 @@ def update_theta(Y, fwd_vals, params, priors, **kwargs):
 
     return theta
 
+def update_theta_categorical(Y, fwd_vals, params, priors, **kwargs):
+    alpha = priors[0]
+    vocab_size = params['vocab_size']
+
+    # how many time to iterate these samples?
+    num_iter = 1
+    L, theta = params['L'], params['theta']
+    z = fwd_vals['z']
+
+    for j in range(L):
+        Yk = Y[np.where(z == j)[0]].astype(np.int16)
+
+        prior = np.ones(vocab_size, dtype=np.float32)*alpha
+        observed = np.zeros(vocab_size, dtype=np.int16)
+        for y in Yk:
+            observed[y]+=1
+
+        theta[j] = np.log(np.random.dirichlet(observed+prior))
+
+    return theta
+
 # sufficient statistics for the SLDS model
 def slds_sufficient_statistics(Y, Y_bar, fwd_pass, ar, params, **kwargs):
 
@@ -487,6 +508,16 @@ def sticky_HMM_multi(Y, starting_params, priors=[0,1,1,10], num_iter=100, verbos
         return theta[j]['sigma']
 
     return blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, MultivariateNormal, update_theta, priors, num_iter, return_assignments, verbose, **kwargs)
+
+def sticky_HMM_HDP(Y, starting_params, priors, num_iter=100, verbose=True, return_assignments=False, **kwargs):
+
+    def mean_func(theta, t, Y, j):
+        return theta[j]
+
+    def cov_func(theta, t, Y, j):
+        return 0
+
+    return blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, Categorical, update_theta_categorical, priors, num_iter, return_assignments, verbose, **kwargs)
 
 
 def sticky_HDP_AR(Y, starting_params, priors, num_iter=100, verbose=True, return_assignments=False, **kwargs):
