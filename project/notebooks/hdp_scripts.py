@@ -37,7 +37,7 @@ def backward_algorithm(Y, mean_func, cov_func, likelihood, params, **kwargs):
     Calculate the backward messages for all time T...1
     '''
 
-    pi, theta, L, T = params['pi'], params['theta'], params['L'],params['T']
+    pi, theta, L, T = params['pi'], params['theta'], params['L'], params['T']
 
     # we have L models and T time steps
     bkwd = np.zeros(shape=(T+1, L), dtype=np.float32)
@@ -53,8 +53,9 @@ def backward_algorithm(Y, mean_func, cov_func, likelihood, params, **kwargs):
         # we need the reverse index
         t = (T-1)-tf
 
-        mu_k_j = [[mean_func(theta, t, Y, j) for j in range(L)] for k in range(L)]
-        sigma_k_j = [[cov_func(theta, t, Y, j) for j in range(L)] for k in range(L)]
+        mu_k_j = np.repeat(np.array([[mean_func(theta, t, Y, j) for j in range(L)]], dtype=np.float32), L, axis=0)
+        sigma_k_j = np.repeat(np.array([[cov_func(theta, t, Y, j) for j in range(L)]], dtype=np.float32), L, axis=0)
+        # print(mean_func(theta, 5, Y, 0))
         likelihood_fn = likelihood(mu_k_j, sigma_k_j)
 
         # evaluate the backward message for each time-step and each assignment for z
@@ -144,8 +145,9 @@ def step_3(state_assignments, params):
 
     for j in range(L):
 
-        prob = rho/(rho + beta[j]*(1-rho))
-        w[j,j] = np.random.binomial(n=m[j,j], p=prob)
+        if m[j,j] > 0:
+            prob = rho/(rho + beta[j]*(1-rho))
+            w[j,j] = np.random.binomial(n=m[j,j], p=prob)
 
     # mbar = mjk if k != j and (m-w) if k==j
     mbar = m - w
@@ -174,8 +176,20 @@ def update_pi(n, z, params, **kwargs):
 
         # update the pis
         # TODO: I STILL DON'T KNOW ABOUT THIS ONE
-        # pi[i] = np.random.dirichlet(alpha * beta + kappa_[i] + n[:,i]) # this one?
-        pi[i] = np.random.dirichlet(alpha * beta + kappa_[i] + n[i])
+        # if (alpha <= 0):
+        #     print("SOMETHING IS SERIOUSLY FUCKED UP:")
+        #     print(alpha)
+        # if (beta <= 0).any():
+        #     print("SOMETHING IS SERIOUSLY FUCKED UP:")
+        #     print(beta)
+        # if (kappa <= 0):
+        #     print("SOMETHING IS SERIOUSLY FUCKED UP:")
+        #     print(kappa)
+        # if (n <= 0).any():
+        #     print("SOMETHING IS SERIOUSLY FUCKED UP:")
+        #     print(n)
+        pi[i] = np.random.dirichlet(1e-10 + alpha * beta + kappa_[i] + n[:,i]) # this one?
+        # pi[i] = np.random.dirichlet(alpha * beta + kappa_[i] + n[i])
 
     return pi
 
@@ -196,6 +210,7 @@ def blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func,
     Y = np.array(Y, dtype=np.float32)
     assignments = np.zeros(shape=(len(Y), num_iter), dtype=np.int16)
     hamming_dist = np.zeros(shape=num_iter, dtype=np.float32)
+    chains = kwargs['chains']
 
     for epic in range(num_iter):
 
@@ -216,10 +231,11 @@ def blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func,
             assignments[:,epic] = np.array(state_par['z'], dtype=np.int16)
 
         if verbose:
-            seq2_updated, sorted_thetas, hamming_val = hdp_eval.get_hamming_distance(seq1=kwargs['chains'], seq2=state_par['z'])
+            seq2_updated, sorted_thetas, hamming_val = hdp_eval.get_hamming_distance(seq1=chains, seq2=state_par['z'])
             hamming_dist[epic] = hamming_val/len(Y)
             if epic % 10 == 0:
                 print("Iteration: %i, # inf chain: %i, time: %0.2f, hamming_dist: %0.3f"%(epic, len(np.unique(state_par['z'])) ,time.time() - start, hamming_val))
+            chains = state_par['z']
 
     if return_assignments:
         return params, np.array(state_par['z']), assignments, hamming_dist
@@ -233,7 +249,7 @@ def blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func,
 #=============================================================
 def update_theta(Y, fwd_vals, params, priors, **kwargs):
 
-    mu0, sig0, nu, Delta = priors
+    mu0, sig0, Delta, nu = priors
 
     # how many time to iterate these samples?
     num_iter = 1
@@ -246,20 +262,52 @@ def update_theta(Y, fwd_vals, params, priors, **kwargs):
 
     for i in range(num_iter):
         for k in range(0,L):
+            if params['D'] == 1:
+                ykk = Yk[k]
+                sig2 = np.square(theta[k]['sigma'])
 
-            ykk = Yk[k]
-            sig2 = theta[k][1]**2
+                # update mu
+                sig0_inv = 1/sig0
+                SigHat = (sig0_inv + len(ykk)/(sig2))**-1
+                muHat = SigHat * (mu0*sig0_inv  + np.sum(ykk)/sig2)
+                theta[k]['A'] = np.random.normal(loc=muHat, scale=np.sqrt(SigHat))
 
-            # update mu
-            sig0_inv = 1/sig0
-            SigHat = (sig0_inv + len(ykk)/(sig2))**-1
-            muHat = SigHat * (mu0*sig0_inv  + np.sum(ykk)/sig2)
-            theta[k][0] = np.random.normal(loc=muHat, scale=np.sqrt(SigHat))
+                # update sigma
+                nu_k = nu + len(ykk)/2
+                nukDeltak = Delta + np.sum(np.square(ykk - theta[k]['A']))/2
+                theta[k]['sigma'] = np.sqrt(stats.invgamma(a=nu_k, scale=nukDeltak).rvs())
+            else:
+                # for d in range(params['D']):
 
-            # update sigma
-            nu_k = nu + len(ykk)/2
-            nukDeltak = Delta + np.sum(np.square(ykk - theta[k][0]))/2
-            theta[k][1] = np.sqrt(stats.invgamma(a=nu_k, scale=nukDeltak).rvs())
+                ykk = Yk[k]
+                nk = len(ykk)
+                y_bar = np.mean(ykk, axis=0)
+
+                if nk > 0:
+                    sigma_ = theta[k]['sigma']
+                    sigma_inv_ = invert(sigma_)
+
+                    # calculate C
+                    c_ = (ykk-y_bar.reshape(1,-1))
+                    C = np.dot(c_.T, c_)
+
+                    # calculate mu0
+                    var_post = sig0 + nk
+                    mu_post = (mu0*sig0 + nk*y_bar)/(var_post)
+                    nu_post = nu + nk
+                    Psi_post = Delta + C + ((sig0*nk)/(var_post))*(np.dot((y_bar-mu0), (y_bar-mu0).T))
+
+                else:
+                    mu_post = mu0
+                    var_post = sig0
+                    Psi_post = Delta
+                    nu_post = nu
+                # update mu
+                # print(mu_post)
+                theta[k]['A'] = np.random.multivariate_normal(mu_post, 1/var_post * theta[k]['sigma'])
+
+                # update sigma
+                theta[k]['sigma'] = stats.invwishart(scale=Psi_post, df=nu_post).rvs()
 
     return theta
 
@@ -420,15 +468,26 @@ def HDP_HMM_State_Sampling(Y, fwd_vals, params):
 # Here are the different sampler models
 #=============================================================
 
-def sticky_HMM(Y, starting_params, priors = [0,200,1,10], num_iter=100, verbose=True, return_assignments=False, **kwargs):
+def sticky_HMM(Y, starting_params, priors=[0,1,1,10], num_iter=100, verbose=True, return_assignments=False, **kwargs):
 
     def mean_func(theta, t, Y, j):
-        return theta[j][0]
+        return theta[j]['A']
 
     def cov_func(theta, t, Y, j):
-        return theta[j][1]
+        return theta[j]['sigma']
 
     return blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, stats.norm, update_theta, priors, num_iter, return_assignments, verbose, **kwargs)
+
+def sticky_HMM_multi(Y, starting_params, priors=[0,1,1,10], num_iter=100, verbose=True, return_assignments=False, **kwargs):
+
+    def mean_func(theta, t, Y, j):
+        return theta[j]['A']
+
+    def cov_func(theta, t, Y, j):
+        return theta[j]['sigma']
+
+    return blocked_Gibbs_for_sticky_HMM_update(Y, starting_params, mean_func, cov_func, MultivariateNormal, update_theta, priors, num_iter, return_assignments, verbose, **kwargs)
+
 
 def sticky_HDP_AR(Y, starting_params, priors, num_iter=100, verbose=True, return_assignments=False, **kwargs):
 
