@@ -1,0 +1,32 @@
+\documentclass[twoside]{article}
+\usepackage{amsmath,amssymb,amsthm,graphicx}
+\usepackage{epsfig}
+\usepackage[authoryear]{natbib}
+\bibliographystyle{unsrtnat}
+\usepackage{geometry}
+\usepackage{setspace}
+
+\geometry{twoside,
+          letterpaper, % i.e, paperwidth=210mm and paperheight=297mm,
+          top=25mm,
+          bottom=45mm,
+          left=25mm,
+          right=25mm,
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5cm}
+% Local Macros Put your favorite macros here that don't appear in
+% stat-macros.tex.  We can eventually incorporate them into
+% stat-macros.tex if they're of general use.
+
+\begin{document}
+
+\textbf{Reflection - Visualization in Bayesian Workflow - Gabery et al.}\\
+\textbf{Nicholas Hoernle \hfill \today}
+
+The plots in Figures 5 and 11 both visualize the starting points of the divergent trajectories in comparison to normally terminated trajectories. The HMC leapfrog integrator will diverge in areas of high curvature in the typical set; possibly indicating a misspecified model. There are also false-positives, where the discretization of the leapfrog integrator causes a divergent trajectory but the model specification is not problematic. It is the structure of the green dots (and lines in part b) in Figure 11 (vs the random distribution of Figure 5) that indicates a problem with the model. The divergent trajectories all originate from a similar starting co-ordinates indicating that these co-ordinates might be problematic. Moreover, the structure of figure 11b where the trajectories all have a low value of $\tau$ again indicate that this might be problematic.
+
+The hierarchical models consider the group level segmentation of the data and therefore we can expect these models to fit the data at the group level better than the baseline linear model. The authors arrive at the conclusion that the hierarchical models fit the data better as the observed medians could easily be draws from the histograms in models 2 and 3. The observed data would be extreme outliers for model 1.
+
+\end{document}w

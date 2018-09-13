@@ -1,0 +1,33 @@
+\documentclass[twoside]{article}
+\usepackage{amsmath,amssymb,amsthm,graphicx}
+\usepackage{epsfig}
+\usepackage[authoryear]{natbib}
+\bibliographystyle{unsrtnat}
+\usepackage{geometry}
+\usepackage{setspace}
+
+\geometry{twoside,
+          letterpaper, % i.e, paperwidth=210mm and paperheight=297mm,
+          top=25mm,
+          bottom=45mm,
+          left=25mm,
+          right=25mm,
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5cm}
+% Local Macros Put your favorite macros here that don't appear in
+% stat-macros.tex.  We can eventually incorporate them into
+% stat-macros.tex if they're of general use.
+
+\begin{document}
+
+\textbf{Reflection - Bayesian Evaluation - Talts et al.}\\
+\textbf{Nicholas Hoernle \hfill \today}
+
+\begin{enumerate}
+\item The paper addresses the suitability of an inference algorithm for a given generative model. It is important in that we should diagnose whether a problem stems from a poorly specified model or from the inference over the parameters in that model. This technique helps us to evaluate whether a given inference algorithm is appropriate for a specified model or not.
+\item Critically we do not tackle the fit of an inference model and algorithm to a given dataset. There is no consideration of whether a posterior distribution would be suitable for a given situation or not.
+\item We expect a uniform distribution in Figure 13. Rather we see a strongly skewed right distribution. This suggests that the posterior samples for $\beta$ are greater than the prior draw of $\beta$. We are therefore biasing inference through the inference scheme and this can result in misleading conclusions.
+\end{enumerate}
+\end{document}
